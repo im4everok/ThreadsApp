@@ -72,3 +72,41 @@ export const fetchThreads = async ({
     throw new Error(`Couldnt create/update user: ${error.message}`);
   }
 }
+
+export const fetchThreadById = async (threadId: string) => {
+  try {
+    connectToDb();
+
+    // TODO: populate communities
+    const thread = await Thread.findById(threadId)
+      .populate({
+        path: 'author',
+        model: User,
+        select: "_id id name image"
+      })
+      .populate({
+        path: 'children',
+        model: Thread,
+        populate: [
+          {
+            path: 'author',
+            model: User,
+            select: "_id id name parentId name"
+          },
+          {
+            path: 'children',
+            model: Thread,
+            populate: {
+              path: 'author',
+              model: User,
+              select: "_id id name parentId image"
+            }
+          }
+        ]
+      })
+
+    return thread;
+  } catch (error: any) {
+    throw new Error(`Couldnt fetch thread by id: ${error.message}`);
+  }
+}
