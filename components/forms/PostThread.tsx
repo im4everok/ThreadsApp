@@ -13,15 +13,19 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
 import * as z from "zod";
-import { ChangeEvent, useState } from "react";
 import { Textarea } from "../ui/textarea";
 import { usePathname, useRouter } from "next/navigation";
 import { ThreadValidation } from "@/lib/validations/thread";
 import { createThread } from "@/lib/actions/thread.actions";
 
-const PostThread = (userId: string) => {
+interface PostThreadProps {
+  userId: string;
+}
+
+const PostThread = ({
+  userId
+}: PostThreadProps) => {
   const router = useRouter();
   const pathname = usePathname();
 
@@ -34,7 +38,7 @@ const PostThread = (userId: string) => {
   });
 
   const onSubmit = async (values: z.infer<typeof ThreadValidation>) => {
-    await createThread({ 
+    await createThread({
       text: values.thread,
       author: userId,
       path: pathname,
@@ -52,7 +56,7 @@ const PostThread = (userId: string) => {
       >
         <FormField
           control={form.control}
-          name="Thread"
+          name="thread"
           render={({ field }) => (
             <FormItem
               className="flex flex-col w-full
@@ -70,9 +74,10 @@ const PostThread = (userId: string) => {
             </FormItem>
           )}
         />
+        <FormMessage />
 
         <Button type="submit" className="bg-primary-500">
-            Post thread
+          Post thread
         </Button>
       </form>
     </Form>
