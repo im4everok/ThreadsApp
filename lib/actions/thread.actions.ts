@@ -91,7 +91,7 @@ export const fetchThreadById = async (threadId: string) => {
           {
             path: 'author',
             model: User,
-            select: "_id id name parentId name"
+            select: "_id id name parentId name image"
           },
           {
             path: 'children',
