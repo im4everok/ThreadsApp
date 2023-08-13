@@ -10,7 +10,8 @@ import {
   FormControl,
   FormField,
   FormItem,
-  FormLabel
+  FormLabel,
+  FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import * as z from "zod";
@@ -18,7 +19,7 @@ import Image from "next/image";
 import { ChangeEvent, useState } from "react";
 import { Textarea } from "../ui/textarea";
 import { isBase64Image } from "@/lib/utils";
-import { useUploadThing } from '@/lib/uploadthing';
+import { useUploadThing } from "@/lib/uploadthing";
 import { usePathname, useRouter } from "next/navigation";
 import { updateUser } from "@/lib/actions/user.actions";
 
@@ -28,18 +29,18 @@ interface ProfileProps {
 }
 
 const AccountProfile = ({ user, bntTitle }: ProfileProps) => {
-    const [files, setFiles] = useState<File[]>([]);
-    const { startUpload } = useUploadThing("media");
-    const router = useRouter();
-    const pathname = usePathname();
+  const [files, setFiles] = useState<File[]>([]);
+  const { startUpload } = useUploadThing("media");
+  const router = useRouter();
+  const pathname = usePathname();
 
-    const form = useForm({
+  const form = useForm({
     resolver: zodResolver(UserValidation),
     defaultValues: {
       profile_photo: user?.image || "",
       name: user?.name || "",
-      username:  user?.username || "",
-      bio:  user?.bio || "",
+      username: user?.username || "",
+      bio: user?.bio || "",
     },
   });
 
@@ -51,20 +52,20 @@ const AccountProfile = ({ user, bntTitle }: ProfileProps) => {
 
     const fileReader = new FileReader();
 
-    if(e.target.files && e.target.files.length > 0){
-        const file = e.target.files[0];
+    if (e.target.files && e.target.files.length > 0) {
+      const file = e.target.files[0];
 
-        setFiles(Array.from(e.target.files));
+      setFiles(Array.from(e.target.files));
 
-        if(!file.type.includes('image')) return;
+      if (!file.type.includes("image")) return;
 
-        fileReader.onload = async (event) => {
-            const imageDataUrl = event.target?.result?.toString();
+      fileReader.onload = async (event) => {
+        const imageDataUrl = event.target?.result?.toString();
 
-            fieldChange(imageDataUrl);
-        }
+        fieldChange(imageDataUrl);
+      };
 
-        fileReader.readAsDataURL(file);
+      fileReader.readAsDataURL(file);
     }
   };
 
@@ -73,31 +74,30 @@ const AccountProfile = ({ user, bntTitle }: ProfileProps) => {
 
     const hasImageChanged = isBase64Image(blob);
 
-    if(hasImageChanged){
-        const imgRes = await startUpload(files);
+    if (hasImageChanged) {
+      const imgRes = await startUpload(files);
 
-        if(imgRes && imgRes[0].fileUrl){
-            values.profile_photo = imgRes[0].fileUrl;
-        }
+      if (imgRes && imgRes[0].fileUrl) {
+        values.profile_photo = imgRes[0].fileUrl;
+      }
     }
 
     // TODO: Update user profile
     await updateUser({
       userId: user.id,
-      username: values.username, 
+      username: values.username,
       name: values.name,
       bio: values.bio,
       image: values.profile_photo,
-      path: pathname
-    })
+      path: pathname,
+    });
 
-    if(pathname === '/profile/edit'){
+    if (pathname === "/profile/edit") {
       router.back();
+    } else {
+      router.push("/");
     }
-    else {
-      router.push('/');
-    }
-  }
+  };
 
   return (
     <Form {...form}>
@@ -140,6 +140,7 @@ const AccountProfile = ({ user, bntTitle }: ProfileProps) => {
                   onChange={(e) => handleImage(e, field.onChange)}
                 />
               </FormControl>
+              <FormMessage />
             </FormItem>
           )}
         />
@@ -159,6 +160,7 @@ const AccountProfile = ({ user, bntTitle }: ProfileProps) => {
                   {...field}
                 />
               </FormControl>
+              <FormMessage />
             </FormItem>
           )}
         />
@@ -178,6 +180,7 @@ const AccountProfile = ({ user, bntTitle }: ProfileProps) => {
                   {...field}
                 />
               </FormControl>
+              <FormMessage />
             </FormItem>
           )}
         />
@@ -197,6 +200,7 @@ const AccountProfile = ({ user, bntTitle }: ProfileProps) => {
                   {...field}
                 />
               </FormControl>
+              <FormMessage />
             </FormItem>
           )}
         />
