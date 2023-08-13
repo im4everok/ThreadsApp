@@ -50,8 +50,7 @@ export const fetchUser = async (userId: string) => {
   try {
     connectToDb();
 
-    const userInfo = await User
-    .findOne({ id: userId })
+    const userInfo = await User.findOne({ id: userId });
     // .populate({
     //   path: 'communities',
     //   model: Community
@@ -64,32 +63,29 @@ export const fetchUser = async (userId: string) => {
 };
 
 export const fetchThreadsByProfile = async (userId: string) => {
-  try{
+  try {
     connectToDb();
 
     // TODO: populate community
-    const threads = await User
-    .findOne({ id: userId })
-    .populate({
-      path: 'threads',
+    const threads = await User.findOne({ id: userId }).populate({
+      path: "threads",
       model: Thread,
       populate: {
-        path: 'children',
+        path: "children",
         model: Thread,
         populate: {
-          path: 'author',
+          path: "author",
           model: User,
-          select: 'name image id'
-        }
-      }
+          select: "name image id",
+        },
+      },
     });
 
     return threads;
-  }
-  catch(error: any){
+  } catch (error: any) {
     throw new Error(`Couldnt fetch threads by profile: ${error.message}`);
   }
-}
+};
 
 interface FetchUsersParams {
   userId: string;
@@ -100,26 +96,26 @@ interface FetchUsersParams {
 }
 
 export const fetchUsers = async ({
-  userId, 
+  userId,
   searchString,
   pageNumber = 1,
   count = 20,
-  sortBy = 'desc',
- }: FetchUsersParams) => {
-  try{
+  sortBy = "desc",
+}: FetchUsersParams) => {
+  try {
     connectToDb();
 
     const skip = (pageNumber - 1) * count;
-    
+
     const regex = new RegExp(searchString, "i");
 
     const query: FilterQuery<typeof User> = { id: { $ne: userId } };
 
-    if(searchString.trim() !== ''){
+    if (searchString.trim() !== "") {
       query.$or = [
-        { username: { $regex: regex }},
-        { name: { $regex: regex } }
-      ]
+        { username: { $regex: regex } },
+        { name: { $regex: regex } },
+      ];
     }
 
     const sortOptions = { createdAt: sortBy };
@@ -136,14 +132,13 @@ export const fetchUsers = async ({
     const isNext = totalUserCount > skip + users.length;
 
     return { users, isNext };
-  }
-  catch(error: any){
+  } catch (error: any) {
     throw new Error(`Couldn't fetch users: ${error.message}`);
   }
-}
+};
 
 export const getActivity = async (userId: string) => {
-  try{
+  try {
     connectToDb();
 
     // threads by this user
@@ -156,16 +151,14 @@ export const getActivity = async (userId: string) => {
 
     const replies = Thread.find({
       _id: { $in: childThreadIds },
-      authour: { $ne: userId }
+      author: { $ne: userId },
     }).populate({
-      path: 'author',
+      path: "author",
       model: User,
-      select: 'name, image, _id'
-    });
+    }).select("name image");
 
     return replies;
-  }
-  catch(error: any){
+  } catch (error: any) {
     throw new Error(`Couldn't fetch activity: ${error.message}`);
   }
-}
+};
