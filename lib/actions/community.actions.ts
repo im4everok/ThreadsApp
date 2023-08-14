@@ -173,9 +173,30 @@ export const fetchCommunities = async ({
   }
 };
 
-export const deleteCommunity = async () => {
+export const deleteCommunity = async (communityId: string) => {
   try {
     connectToDb();
+
+    const deletedCommunity = await Community.findOneAndDelete({
+        id: communityId
+    });
+
+    if(!deletedCommunity){
+        throw new Error("Community not found");
+    }
+
+    await Thread.deleteMany({ community: communityId });
+
+    const communityUsers = await User.find({ communities: communityId });
+
+    const updateUserPromises = communityUsers.map((user) =>{
+        user.communities.pull(communityId);
+        return user.save();
+    })
+
+    await Promise.all(updateUserPromises);
+
+    return deletedCommunity;
   } catch (error: any) {
     throw new Error(`Couldn't fetch activity: ${error.message}`);
   }
