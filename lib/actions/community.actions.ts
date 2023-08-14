@@ -219,10 +219,26 @@ export const removeUserFromCommunity = async (
   }
 };
 
-export const updateCommunityInfo = async () => {
+export const updateCommunityInfo = async (
+  communityId: string,
+  name: string,
+  username: string,
+  image: string
+) => {
   try {
     connectToDb();
+
+    const updatedCommunity = await Community.findOneAndUpdate(
+      { id: communityId },
+      { name, username, image }
+    );
+
+    if (!updatedCommunity) {
+      throw new Error("Community not found");
+    }
+
+    return updatedCommunity;
   } catch (error: any) {
-    throw new Error(`Couldn't fetch activity: ${error.message}`);
+    throw new Error(`Couldn't update community info: ${error.message}`);
   }
 };
