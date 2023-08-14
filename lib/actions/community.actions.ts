@@ -4,11 +4,38 @@ import Thread from "../models/thread.model";
 import User from "../models/user.model";
 import { connectToDb } from "../mongoose";
 
-export const addMemberToCommunity = async () => {
+export const addMemberToCommunity = async (
+  communityId: string,
+  memberId: string
+) => {
   try {
     connectToDb();
+
+    const community = await Community.findOne({ id: communityId });
+
+    if (!community) {
+      throw new Error("Community not found");
+    }
+
+    const user = await User.findOne({ id: memberId });
+
+    if (!user) {
+      throw new Error("User not found");
+    }
+
+    if (community.members.include(user._id)) {
+      throw new Error("User is already a member of the community");
+    }
+
+    community.members.push(user._id);
+    await community.save();
+
+    user.communities.push(community._id);
+    await user.save();
+
+    return community;
   } catch (error: any) {
-    throw new Error(`Couldn't fetch activity: ${error.message}`);
+    throw new Error(`Couldn't add member to community: ${error.message}`);
   }
 };
 
